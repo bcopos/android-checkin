@@ -39,3 +39,7 @@ From the command line:
 	mvn package
 ```
 
+License
+-------
+
+Android Checkin is released under the MIT license.
