@@ -1,4 +1,4 @@
-Android Checkin
+Aandroid Checkin
 ================
 
 Android Checkin allows you to register a google account as if you were on
