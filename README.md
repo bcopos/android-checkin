@@ -39,6 +39,8 @@ From the command line:
 	mvn package
 ```
 
+If you get an error like `[ERROR] Failed to execute goal com.github.igor-petruk.protobuf:protobuf-maven-plugin:0.4:run (default) on project android-checkin: Unable to find 'protoc' -> [Help 1]`, download protobuf-2.4.1 [source](https://protobuf.googlecode.com/files/protobuf-2.4.1.tar.gz) and build. Make sure the executable `protoc` is in your PATH.
+
 License
 -------
 
