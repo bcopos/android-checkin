@@ -3,7 +3,7 @@ import com.android.checkin.Checkin;
 
 public class Main {
     private static void usage() {
-        System.out.println("Usage: java -jar android-checkin.jar <email> <password>");
+        System.out.println("Usage: java -jar android-checkin.jar <email> <password> <androidId>");
     }
 
     public static void main(String[] args) {
@@ -14,7 +14,9 @@ public class Main {
             }
             String email = args[0];
             String password = args[1];
-            new Checkin(email, password).checkin();
+            String androidId = args[2];
+
+            new Checkin(email, password, androidId).checkin();
         } catch (Exception e) {
             e.printStackTrace();
         }

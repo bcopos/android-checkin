@@ -28,6 +28,7 @@ import com.android.checkin.proto.Config.DeviceConfigurationProto;
 
 import com.android.checkin.HttpClientGzip;
 import com.android.checkin.Helpers;
+import com.android.checkin.Password_Encrypter;
 
 public class Checkin {
     private final HttpClientGzip httpclient = new HttpClientGzip();
@@ -38,50 +39,57 @@ public class Checkin {
     private String token;
     public String getToken() { return this.token; }
 
+    private String LSID;
+    public String getLSID() { return this.LSID; }
+
     private String authGsf;
     public String getAuthGsf() { return this.authGsf; }
 
     private String androidId;
     public String getAndroidId() { return this.androidId; }
 
-    public Checkin(String email, String password) {
+    public Checkin(String email, String password, String androidId) {
         this.email = email;
         this.password = password;
+	this.androidId = androidId;
     }
 
     public String checkin() throws IOException {
         System.err.println("Fetching auth (google service)...");
-        fetchAuthGsf();
+        fetchLSID();
         System.err.println("Checking in...");
         doCheckin();
-        System.err.println("AndroidId: " + this.androidId);
 
         return this.androidId;
     }
 
     // --------------------------------- auth --------------------------------- //
 
-    public void fetchAuthGsf() throws IOException {
+    public void fetchLSID() throws IOException {
         ArrayList<NameValuePair> data = new ArrayList<NameValuePair>();
+
         data.add(new BasicNameValuePair("accountType",    "HOSTED_OR_GOOGLE"));
         data.add(new BasicNameValuePair("Email",          this.email));
-        data.add(new BasicNameValuePair("Passwd",         this.password));
+        data.add(new BasicNameValuePair("EncryptedPasswd", Password_Encrypter.encryptPassword(this.email, this.password)));
         data.add(new BasicNameValuePair("has_permission", "1"));
         data.add(new BasicNameValuePair("service",        "ac2dm"));
         data.add(new BasicNameValuePair("source",         "android"));
         data.add(new BasicNameValuePair("app",            "com.google.android.gsf"));
-        data.add(new BasicNameValuePair("client_sig",     "61ed377e85d386a8dfee6b864bd85b0bfaa5af81"));
+        data.add(new BasicNameValuePair("androidId",      this.androidId));
+        data.add(new BasicNameValuePair("client_sig",     "38918a453d07199354f8b19af05ec6562ced5788"));
         data.add(new BasicNameValuePair("lang",           "en"));
-        data.add(new BasicNameValuePair("sdk_version",    "16"));
+        data.add(new BasicNameValuePair("device_country", "us"));
+        data.add(new BasicNameValuePair("operatorCountry","us"));
+        data.add(new BasicNameValuePair("sdk_version",    "18"));
 
-        this.authGsf = postFormFetchValue("https://android.clients.google.com/auth", data, "Auth");
+        this.LSID = postFormFetchValue("https://android.clients.google.com/auth", data, "LSID");
     }
 
     private String postFormFetchValue(String url, ArrayList<NameValuePair> params, String key) throws IOException {
         String line;
 
         HttpPost request = new HttpPost(url);
-        request.setHeader("User-Agent", "GoogleLoginService/1.3 (crespo JZO54K)");
+        request.setHeader("User-Agent", "GoogleLoginService/1.3 (Nexus 4 Build/KOT49H)");
         request.setEntity(new UrlEncodedFormEntity(params, Consts.UTF_8));
 
         try {
@@ -200,7 +208,7 @@ public class Checkin {
             .addMacAddr(macAddr)
             .setMeid(meid)
             .addAccountCookie("[" + this.email + "]")
-            .addAccountCookie(this.authGsf)
+            .addAccountCookie(this.LSID)
             .setTimeZone("America/New_York")
             // securityToken
             .setVersion(3)
@@ -350,7 +358,7 @@ public class Checkin {
         request.setHeader("Content-type", "application/x-protobuffer");
         request.setHeader("Content-Encoding", "gzip");
         request.setHeader("Accept-Encoding", "gzip");
-        request.setHeader("User-Agent", "Android-Checkin/2.0 (maguro JRO03L); gzip");
+        request.setHeader("User-Agent", "Android-Checkin/2.0 (Nexus 4 Build/KOT49H); gzip");
 
         request.setEntity(new ByteArrayEntity(generateCheckinPayload()));
 
