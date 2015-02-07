@@ -33,7 +33,7 @@ message AndroidCheckinResponse {
   optional string digest = 4;
   repeated GservicesSetting setting = 5;
   optional bool marketOk = 6;
-  optional fixed64 androidId = 7;
+  optional fixed64 gsfId = 7;
   optional fixed64 securityToken = 8;
   optional bool settingsDiff = 9;
   repeated string deleteSetting = 10;

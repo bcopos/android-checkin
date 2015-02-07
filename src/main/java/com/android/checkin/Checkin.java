@@ -21,6 +21,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import com.android.checkin.proto.Checkin.AndroidCheckinRequest;
 import com.android.checkin.proto.Checkin.AndroidCheckinResponse;
+import com.android.checkin.proto.Checkin.GservicesSetting;
 import com.android.checkin.proto.Logs.AndroidCheckinProto;
 import com.android.checkin.proto.Logs.AndroidBuildProto;
 import com.android.checkin.proto.Logs.AndroidEventProto;
@@ -54,6 +55,13 @@ public class Checkin {
     private String gsfId;
     public String getGsfId() { return this.gsfId; }
 
+    private long androidId;
+    public long getAndroidId() { return this.androidId; }
+
+    private long lastCheckin;
+
+    private long securityToken;
+
     public Checkin(String email, String password) {
         this.email = email;
         this.password = password;
@@ -64,12 +72,12 @@ public class Checkin {
         this.serial = generateSerialNumber();
         this.macAddr = generateMacAddr();
 
-        System.err.println("Checking in...");
-        doCheckin(2);
+        System.err.println("Checking in without Google account...");
+        doCheckin(1);
         System.err.println("Fetching auth (google service)...");
         fetchLSID();
         System.err.println("Checking in...");
-        doCheckin(1);
+        doCheckin(2);
 
 	return this.gsfId;
     }
@@ -178,31 +186,31 @@ public class Checkin {
         //System.err.println("Using Serial:    " + serial);
         //System.err.println("Using Mac Addr:  " + macAddr);
         //System.err.println("Using LoggingId: " + loggingId);
-        if ( option == 1) {
+        if ( option != 1) {
 		return AndroidCheckinRequest.newBuilder()
 		    // imei
-		    .setId(0)
+		    .setId(this.androidId)
 		    .setDigest("1-929a0dca0eee55513280171a8585da7dcd3700f8")
 		    .setCheckin(AndroidCheckinProto.newBuilder()
 			.setBuild(AndroidBuildProto.newBuilder()
-			    .setId("google/yakju/maguro:4.1.1/JRO03C/398337:user/release-keys")
+			    .setId("google/yakju/maguro:4.3/JRO03C/398337:user/release-keys")
 			    .setProduct("tuna")
 			    .setCarrier("Google")
 			    .setRadio("I9250XXLA2")
 			    .setBootloader("PRIMELA03")
 			    .setClient("android-google")
 			    .setTimestamp(new Date().getTime()/1000)
-			    .setGoogleServices(16)
+			    .setGoogleServices(18)
 			    .setDevice("maguro")
-			    .setSdkVersion(16)
-			    .setModel("Galaxy Nexus")
-			    .setManufacturer("Samsung")
+			    .setSdkVersion(18)
+			    .setModel("Galaxy Nexus 4")
+			    .setManufacturer("LG")
 			    .setBuildProduct("yakju")
 			    .setOtaInstalled(false))
-			.setLastCheckinMsec(0)
+			.setLastCheckinMsec(this.lastCheckin)
 			.addEvent(AndroidEventProto.newBuilder()
-			    .setTag("event_log_start")
-			    // value
+			    .setTag("system_update")
+			    .setValue("1536,0,-1,NULL")
 			    .setTimeMsec(new Date().getTime()))
 			// stat
 			// requestedGroup
@@ -218,7 +226,7 @@ public class Checkin {
 		    .addAccountCookie("[" + this.email + "]")
 		    .addAccountCookie(this.LSID)
 		    .setTimeZone("America/New_York")
-		    // securityToken
+		    .setSecurityToken(this.securityToken)
 		    .setVersion(3)
 		    .addOtaCert("71Q6Rn2DDZl1zPDVaaeEHItd")
 		    .setSerialNumber(this.serial)
@@ -361,6 +369,7 @@ public class Checkin {
 		    .toByteArray();
         }
         else {
+                this.lastCheckin = new Date().getTime();
 		return AndroidCheckinRequest.newBuilder()
 		    // imei
 		    .setId(0)
@@ -374,9 +383,9 @@ public class Checkin {
 			    .setBootloader("PRIMELA03")
 			    .setClient("android-google")
 			    .setTimestamp(new Date().getTime()/1000)
-			    .setGoogleServices(16)
+			    .setGoogleServices(18)
 			    .setDevice("maguro")
-			    .setSdkVersion(16)
+			    .setSdkVersion(18)
 			    .setModel("Galaxy Nexus")
 			    .setManufacturer("Samsung")
 			    .setBuildProduct("yakju")
@@ -385,7 +394,7 @@ public class Checkin {
 			.addEvent(AndroidEventProto.newBuilder()
 			    .setTag("event_log_start")
 			    // value
-			    .setTimeMsec(new Date().getTime()))
+			    .setTimeMsec(this.lastCheckin))
 			// stat
 			// requestedGroup
 			.setCellOperator("310260") // T-Mobile
@@ -548,7 +557,7 @@ public class Checkin {
         request.setHeader("Content-type", "application/x-protobuffer");
         request.setHeader("Content-Encoding", "gzip");
         request.setHeader("Accept-Encoding", "gzip");
-        request.setHeader("User-Agent", "Android-Checkin/2.0 (Nexus 4 Build/KOT49H); gzip");
+        request.setHeader("User-Agent", "Android-Checkin/2.0 (vbox86p JLS36G); gzip");
 
         request.setEntity(new ByteArrayEntity(generateCheckinPayload(option)));
 
@@ -561,12 +570,24 @@ public class Checkin {
             byte[] response_bytes = Helpers.inputStreamToBytes(entity.getContent());
             AndroidCheckinResponse parsed_response = AndroidCheckinResponse.parseFrom(response_bytes);
 
-            long aid = parsed_response.getAndroidId();
-            if (aid == 0)
-                throw new IOException("Can't find android_id" + " // " + response.getStatusLine().toString());
+            long gsfid = parsed_response.getGsfId();
+            if (gsfid == 0)
+                throw new IOException("Can't find gsf_id" + " // " + response.getStatusLine().toString());
 
-            if (option != 1) {
-                this.gsfId = Long.toString(aid, 16);
+            if (option == 1) {
+                this.gsfId = Long.toString(gsfid, 16);
+
+                this.securityToken = parsed_response.getSecurityToken();
+                System.err.println("security token: " + Long.toString(this.securityToken, 10));
+
+                for (GservicesSetting s : parsed_response.getSettingList()) {
+                    if ((s.getName()).toStringUtf8().equals("android_id")) {
+                        this.androidId = Long.parseLong((s.getValue()).toStringUtf8(), 10);
+                    }
+                }
+                System.err.println("android_id: " + Long.toString(this.androidId, 10));
+            }
+            else {
             }
         } finally {
             request.releaseConnection();
