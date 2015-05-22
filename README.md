@@ -24,7 +24,7 @@ Usage
 From the command line:
 ```shell
 # Outputs the registered android_id
-java -Xbootclasspath/a:lib/httpcore-4.2.2.jar:lib/httpclient-4.2.2.jar:lib/httpmime-4.2.2.jar:lib/httpclient-cache-4.2.2.jar:lib/commons-logging-1.1.1.jar:lib/fluent-hc-4.2.2.jar:lib/protobuf-java-2.4.1.jar -jar android-checkin-jb.jar <email> <password>
+java -Xbootclasspath/a:lib/httpcore-4.2.2.jar:lib/httpclient-4.2.2.jar:lib/httpmime-4.2.2.jar:lib/httpclient-cache-4.2.2.jar:lib/commons-logging-1.1.1.jar:lib/fluent-hc-4.2.2.jar:lib/protobuf-java-2.4.1.jar:lib/commons-codec-1.6.jar -jar android-checkin-jb.jar <email> <password>
 ```
 
 To obtain androidId via adb
