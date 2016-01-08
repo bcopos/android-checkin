@@ -3,14 +3,11 @@ Android Checkin
 
 Android Checkin allows you to register a Google account with a device, as if it was done from the device.
 
-Most of the code for the checkin process is from [android-checkin](https://github.com/nviennot/android-checkin). However, the original code did not work since Google changed their Authentication process to require encrypted password (vs. plaintext). This repository includes a tool for encrypting Google account passwords in the same fashion as GoogleLoginService.
+Most of the code for the checkin process is from [android-checkin](https://github.com/nviennot/android-checkin). However, the original code no longer works since Google has changed the authentication process to require encrypted password (vs. plaintext). This repository includes a tool for encrypting Google account passwords in the same fashion as GoogleLoginService.
 
-The password encryption method is the reverse-engineered version of `gapps-jb-20130813-signed/system/app/GoogleLoginService/smali/com/google/android/gsf/loginservice/Password_Encrypter.smali` (aka Android 4.3 JellyBean). It has not been tested on Lollipop but seems to also work for Jellybean (4.4).
+The password encryption method is the reverse-engineered version of `gapps-jb-20130813-signed/system/app/GoogleLoginService/smali/com/google/android/gsf/loginservice/Password_Encrypter.smali` (aka Android 4.3 JellyBean). It has not been tested on Lollipop but seems to also work for KitKat (4.4).
 
-The device is mimicks is a MotoX Gen 1. Also added ble as one of the hardware components to enable downloading of more applications.
-
-TODO:
-- figure out why it needs to manually add deps to classpath
+The mimicked device is a MotoX Gen 1. Also added BLE as one of the hardware components for increased compatbility with applications.
 
 GoogleLoginService Password Encryption
 -----
